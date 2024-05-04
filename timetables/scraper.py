@@ -1,6 +1,7 @@
 #!/bin/python3
 
 import os
+import re
 import sqlite3
 from collections import defaultdict
 from contextlib import closing
@@ -14,6 +15,7 @@ from mechanicalsoup import StatefulBrowser
 
 class TimetableScraper:
     day_types = ("P", "S", "N")
+    ignored_lines = set(os.environ.get("IGNORE_LINES").split(","))
 
     def __init__(self, connection_cursor: Cursor):
         self.cursor = connection_cursor
@@ -52,7 +54,7 @@ class TimetableScraper:
                 tram_stop_id INTEGER DEFAULT NULL,
                 tram_line_variant_id INTEGER NOT NULL,
                 stop_index INTEGER NOT NULL,
-                day TEXT NOT NULL CHECK (day IN {scraper.day_types}),
+                day TEXT NOT NULL CHECK (day IN {self.day_types}),
                 hour INTEGER NOT NULL,
                 minute INTEGER NOT NULL,
 
@@ -70,8 +72,8 @@ class TimetableScraper:
         self._create_tram_departures_table()
 
     def _scrape_stops(self, variant_id: int, stop_index: int, stop_name: str, stop_url: str):
-        cursor.execute("SELECT id FROM tram_stops WHERE name LIKE ?", list([stop_name]))
-        rows, stop_id = cursor.fetchall(), None
+        self.cursor.execute("SELECT id FROM tram_stops WHERE name LIKE ?", list([stop_name]))
+        rows, stop_id = self.cursor.fetchall(), None
 
         if not len(rows):
             print(f"Stop '{stop_name}' not found")
@@ -89,10 +91,10 @@ class TimetableScraper:
 
                 for i, day in enumerate(self.day_types):
                     for minute in cells[i + 1].text.strip().split():
-                        self.day_departures[day].append((hour, int(minute)))
+                        self.day_departures[day].append((hour, int(re.sub("[^0-9] ", "", minute))))
 
         for day, departures in self.day_departures.items():
-            cursor.executemany(
+            self.cursor.executemany(
                 """
                     INSERT INTO tram_departures (tram_stop_id, tram_line_variant_id, stop_index, day, hour, minute)
                     VALUES (?, ?, ?, ?, ?, ?)
@@ -112,11 +114,11 @@ class TimetableScraper:
     def _scrape_variant_stops(self, tram_line_id: int, variant_name: str, variant_url: str):
         print("Wariant", variant_name)
 
-        cursor.execute(
+        self.cursor.execute(
             "INSERT INTO tram_line_variants (tram_line_id, name) VALUES (?, ?) RETURNING id",
             (tram_line_id, variant_name)
         )
-        variant_id = cursor.fetchone()[0]
+        variant_id = self.cursor.fetchone()[0]
 
         self.browser.open(os.environ.get("TIMETABLE_URL") + variant_url)
         stop_urls = {
@@ -131,11 +133,11 @@ class TimetableScraper:
     def _scrape_line_variants(self, line_number: str, line_url: str):
         print("Linia", line_number)
 
-        cursor.execute(
+        self.cursor.execute(
             "INSERT INTO tram_lines (number) VALUES (?) RETURNING id",
             tuple([line_number])
         )
-        tram_line_id = cursor.fetchone()[0]
+        tram_line_id = self.cursor.fetchone()[0]
 
         self.browser.open(os.environ.get("TIMETABLE_URL") + line_url)
         variant_urls = {
@@ -155,7 +157,7 @@ class TimetableScraper:
             if len(item.text.strip()) <= 2
         }
 
-        for line_number, line_url in tram_lines.items():
+        for line_number, line_url in filter(lambda x: x not in self.ignored_lines, tram_lines.items()):
             self._scrape_line_variants(line_number, line_url)
 
 
