@@ -1,7 +1,7 @@
 import os
 from sqlite3 import Cursor
 
-from timetable_information.classes.day_type import DayType
+from .day_type import DayType
 
 
 class TimetableDatabaseSetup:

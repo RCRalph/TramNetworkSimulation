@@ -1,33 +1,13 @@
 import os
 import re
-from dataclasses import dataclass
 from random import uniform
 from sqlite3 import Cursor
 from time import sleep
 
 from mechanicalsoup import StatefulBrowser
 
-from timetable_information.classes.day_type import DayType
-
-
-@dataclass
-class Departure:
-    stop_id: int | None
-    variant_id: int
-    stop_index: int
-    day_type: DayType
-    hour: int
-    minute: int
-
-    def to_sql_parameters(self, add_minute: bool, unknown_stop: bool):
-        return (
-            self.stop_id if not unknown_stop else None,
-            self.variant_id,
-            self.stop_index,
-            self.day_type.value,
-            (self.hour + (self.minute + add_minute) // 60) % 24,
-            (self.minute + add_minute) % 60
-        )
+from .day_type import DayType
+from .departure import Departure
 
 
 class TimetableScraper:
@@ -48,7 +28,7 @@ class TimetableScraper:
 
         # For stops where line terminates, the timetable doesn't exist.
         # To combat this problem, we assume a 1-minute travel time between the second-last and last stop.
-        # In order to achieve this, the day_departures dictionary holds information about the previous departure.
+        # In order to achieve this, the departures list holds information about previous departures.
         if stop_url is not None:
             self.browser.open(os.environ.get("TIMETABLE_URL") + stop_url)
 
@@ -63,6 +43,15 @@ class TimetableScraper:
                             stop_id, variant_id, stop_index, day, hour,
                             int(re.sub("[^0-9]", "", minute))
                         ))
+        else:
+            self.departures = [
+                Departure(
+                    stop_id, variant_id,
+                    item.stop_index, item.day_type,
+                    (item.hour + (item.minute + 1) // 60) % 24,
+                    (item.minute + 1) % 60
+                ) for item in self.departures
+            ]
 
         self.cursor.executemany(
             """
@@ -70,7 +59,7 @@ class TimetableScraper:
                 VALUES (?, ?, ?, ?, ?, ?)
             """,
             (
-                item.to_sql_parameters(stop_url is None, stop_id is None)
+                (item.stop_id, item.variant_id, item.stop_index, item.day_type.value, item.hour, item.minute)
                 for item in self.departures
             )
         )
