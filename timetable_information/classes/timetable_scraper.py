@@ -47,7 +47,7 @@ class TimetableScraper:
             self.departures = [
                 Departure(
                     stop_id, variant_id,
-                    item.stop_index, item.day_type,
+                    stop_index, item.day_type,
                     (item.hour + (item.minute + 1) // 60) % 24,
                     (item.minute + 1) % 60
                 ) for item in self.departures
