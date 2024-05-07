@@ -23,7 +23,7 @@ if __name__ == "__main__":
         TramStop(item.id, item.tags.get("name"), item.lat, item.lon)
         for item in tram_stops_query_result.nodes
     }
-    
+
     with (
         closing(sqlite3.connect(os.environ.get('DATABASE_NAME'), isolation_level=None)) as connection,
         closing(connection.cursor()) as cursor
@@ -38,6 +38,6 @@ if __name__ == "__main__":
         """)
 
         cursor.executemany(
-            "INSERT INTO tram_stops VALUES (?, ?, ?, ?) ON CONFLICT (id) DO NOTHING",
+            "INSERT INTO tram_stops VALUES (?, ?, ?, ?)",
             (item.to_sql_parameters() for item in tram_stop_set)
         )
