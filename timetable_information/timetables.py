@@ -23,7 +23,5 @@ if __name__ == "__main__":
         if len(excluded_lines) == 1 and "" in excluded_lines:
             excluded_lines.clear()
 
-        print(included_lines, excluded_lines)
-
         scraper = TimetableScraper(cursor)
         scraper.scrape_timetables(included_lines, excluded_lines)
