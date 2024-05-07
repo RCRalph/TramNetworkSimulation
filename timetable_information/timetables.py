@@ -15,8 +15,15 @@ if __name__ == "__main__":
     ):
         TimetableDatabaseSetup(cursor).prepare_database()
 
+        included_lines = set(os.environ.get("INCLUDED_LINES").split(","))
+        if len(included_lines) == 1 and "" in included_lines:
+            included_lines.clear()
+
+        excluded_lines = set(os.environ.get("EXCLUDED_LINES").split(","))
+        if len(excluded_lines) == 1 and "" in excluded_lines:
+            excluded_lines.clear()
+
+        print(included_lines, excluded_lines)
+
         scraper = TimetableScraper(cursor)
-        scraper.scrape_timetables(
-            set(os.environ.get("INCLUDED_LINES").split(",")),
-            set(os.environ.get("EXCLUDED_LINES").split(","))
-        )
+        scraper.scrape_timetables(included_lines, excluded_lines)
