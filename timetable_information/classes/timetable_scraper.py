@@ -38,6 +38,9 @@ class TimetableScraper:
                 hour = int(cells[0].text)
 
                 for i, day in enumerate(DayType):
+                    if i + 1 >= len(cells):
+                        continue
+
                     for minute in cells[i + 1].text.strip().split():
                         self.departures.append(Departure(
                             stop_id, variant_id, stop_index, day, hour,
