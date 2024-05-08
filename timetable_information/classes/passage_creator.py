@@ -112,6 +112,10 @@ class PassageCreator:
 
         passages: list[TramPassage] = []
         departure_passage: dict[Departure, TramPassage] = {}
+        
+        # Some lines don't have any passages on saturdays and holidays
+        if not departures:
+            return passages
 
         highest_stop_index = max(stop_index_departures.keys())
         for end_departure in filter(lambda x: x not in departure_passage, departures):
@@ -133,7 +137,9 @@ class PassageCreator:
                     key=lambda x: x.time_distance_between(previous_stop)
                 )
 
-                if next_stop in departure_passage:
+                if next_stop.time_distance_between(previous_stop) >= 60:
+                    break
+                elif next_stop in departure_passage:
                     later_passage = departure_passage[next_stop]
                     for _ in range(later_passage.get_departure_index(next_stop), len(later_passage)):
                         del departure_passage[later_passage.reverse_stop_sequence.pop()]
