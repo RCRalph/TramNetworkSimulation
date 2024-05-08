@@ -13,8 +13,10 @@ class Departure:
     hour: int
     minute: int
 
-    def is_previous(self, other):
-        if self.stop_index != other.stop_index - 1:
-            return False
+    def get_minutes(self):
+        return self.hour * 60 + self.minute
 
-        return self.hour < other.hour or self.hour == other.hour and self.minute < other.minute
+    def time_distance_between(self, other: 'Departure'):
+        minute_diff = other.get_minutes() - self.get_minutes()
+
+        return minute_diff + 24 * 60 if minute_diff < 0 else minute_diff

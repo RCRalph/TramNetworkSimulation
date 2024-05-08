@@ -45,10 +45,15 @@ class PassageCreator:
                 tram_departures.minute DESC
         """, (tram_line_variant, day.value))
 
-        return [
-            Departure(item[0], tram_line_variant, item[1], day, item[2], item[3])
-            for item in self.cursor.fetchall()
-        ]
+        departures: list[Departure] = []
+        stop_index_departures: dict[int, list[Departure]] = defaultdict(list)
+
+        for item in self.cursor.fetchall():
+            departure = Departure(item[0], tram_line_variant, item[1], day, item[2], item[3])
+            departures.append(departure)
+            stop_index_departures[departure.stop_index].append(departure)
+
+        return departures, stop_index_departures
 
     def _get_new_first_departure(self, end_departure: Departure):
         self.cursor.execute(
@@ -98,16 +103,17 @@ class PassageCreator:
                 )
             )
 
-    def _get_variant_passages(self, tram_line_id: int, variant_id: int, day: DayType):
+    def _get_variant_passages(self, tram_line_id: int, variant_id: int, day: DayType) -> list[TramPassage]:
         def add_departure(departure: Departure):
             tram_passage.add_stop(departure)
             departure_passage[departure] = tram_passage
 
-        departures = self._get_departures(variant_id, day)
+        departures, stop_index_departures = self._get_departures(variant_id, day)
+
         passages: list[TramPassage] = []
         departure_passage: dict[Departure, TramPassage] = {}
 
-        highest_stop_index = max(map(lambda x: x.stop_index, departures))
+        highest_stop_index = max(stop_index_departures.keys())
         for end_departure in filter(lambda x: x not in departure_passage, departures):
             tram_passage = TramPassage(tram_line_id, day)
             passages.append(tram_passage)
@@ -118,14 +124,23 @@ class PassageCreator:
                 add_departure(new_first_departure)
 
             previous_stop = end_departure
-            for item in filter(lambda x: x is end_departure or x.is_previous(previous_stop), departures):
-                if item in departure_passage:
-                    later_passage = departure_passage[item]
-                    for _ in range(later_passage.get_departure_index(item), len(later_passage)):
+            for stop_index in filter(
+                lambda x: x <= end_departure.stop_index,
+                sorted(stop_index_departures.keys(), reverse=True)
+            ):
+                next_stop = min(
+                    stop_index_departures[stop_index],
+                    key=lambda x: x.time_distance_between(previous_stop)
+                )
+
+                if next_stop in departure_passage:
+                    later_passage = departure_passage[next_stop]
+                    for _ in range(later_passage.get_departure_index(next_stop), len(later_passage)):
                         del departure_passage[later_passage.reverse_stop_sequence.pop()]
 
-                add_departure(item)
-                previous_stop = item
+                tram_passage.add_stop(next_stop)
+                departure_passage[next_stop] = tram_passage
+                previous_stop = next_stop
 
         return passages
 
@@ -133,5 +148,5 @@ class PassageCreator:
         for tram_line_id, tram_line_variants in self.tram_line_variants.items():
             for variant_id in tram_line_variants:
                 for day in DayType:
-                    print(tram_line_id, variant_id, day)
+                    print(f"Tram line ID: {tram_line_id}, variant ID: {variant_id}, day: {day.name}")
                     self._store_passages(self._get_variant_passages(tram_line_id, variant_id, day))

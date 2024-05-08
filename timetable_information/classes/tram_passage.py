@@ -19,7 +19,10 @@ class TramPassage:
         return indexOf(map(lambda x: x == departure, self.reverse_stop_sequence), True)
 
     def get_stop_names(self, tram_stops: dict[int, TramStop]):
-        return [tram_stops[item.stop_id].name for item in reversed(self.reverse_stop_sequence)]
+        return [
+            f"{item.hour:02d}:{item.minute:02d} {tram_stops[item.stop_id].name}"
+            for item in reversed(self.reverse_stop_sequence)
+        ]
 
     def __len__(self):
         return len(self.reverse_stop_sequence)
