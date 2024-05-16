@@ -4,7 +4,7 @@ from contextlib import closing
 
 from dotenv import load_dotenv
 
-from timetable_information.classes import PassageDatabaseSetup, PassageCreator
+from classes import PassageDatabaseSetup, PassageCreator
 
 if __name__ == "__main__":
     load_dotenv()
