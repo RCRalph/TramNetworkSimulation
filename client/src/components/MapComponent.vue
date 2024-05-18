@@ -1,20 +1,25 @@
 <script setup lang="ts">
 import {
   CircleMarker,
-  LatLng,
   latLng,
   latLngBounds,
   map as leafletMapConstructor,
   Map as LeafletMap,
   tileLayer,
 } from "leaflet"
-import { onMounted } from "vue"
-import { TramStop } from "@interfaces/tram_stop"
+import { onMounted, ref } from "vue"
+import { TramStop } from "@interfaces/TramStop"
+import { TramPassage } from "@classes/TramPassage"
+import { Time } from "@classes/Time"
 
 const props = defineProps<{
   tramStops: TramStop[],
-  tramPassage: LatLng[]
+  tramPassages: TramPassage[]
 }>()
+
+const time = defineModel<Time>("time", {required: true})
+
+const leafletMap = ref<LeafletMap>()
 
 function getMapCenter() {
   return latLngBounds(
@@ -32,7 +37,7 @@ function getMapCenter() {
 function prepareMap() {
   const mapCenter = getMapCenter()
 
-  const leafletMap = leafletMapConstructor("map", {
+  leafletMap.value = leafletMapConstructor("map", {
     maxBounds: mapCenter.pad(1),
     center: mapCenter.getCenter(),
     zoom: 13,
@@ -41,12 +46,14 @@ function prepareMap() {
   tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 19,
     attribution: "&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a>",
-  }).addTo(leafletMap)
-
-  return leafletMap
+  }).addTo(leafletMap.value)
 }
 
-function placeTramStops(leaflet: LeafletMap) {
+function placeTramStops() {
+  if (!leafletMap.value) {
+    throw new Error("Map not initialized")
+  }
+
   for (const stop of props.tramStops) {
     new CircleMarker(
       stop.coordinates,
@@ -54,29 +61,26 @@ function placeTramStops(leaflet: LeafletMap) {
         radius: 5,
         fill: true,
       },
-    ).addTo(leaflet)
+    ).addTo(leafletMap.value)
   }
 }
 
-async function runTramPassage(leaflet: LeafletMap) {
-  const marker = new CircleMarker(
-    props.tramPassage[0],
-    {
-      radius: 10,
-      color: "red",
-    },
-  ).addTo(leaflet)
+onMounted(async () => {
+  prepareMap()
+  placeTramStops()
 
-  for (const [i, item] of props.tramPassage.entries()) {
-    setTimeout(() => marker.setLatLng(item), 1000 * i)
+  if (!leafletMap.value) {
+    throw new Error("Map not initialized")
   }
-}
 
-onMounted(() => {
-  const leaflet = prepareMap()
+  while (true) {
+    for (const item of props.tramPassages) {
+      item.move(leafletMap.value, time.value)
+    }
 
-  placeTramStops(leaflet)
-  runTramPassage(leaflet)
+    time.value.addMinute()
+    await new Promise(r => setTimeout(r, 1000))
+  }
 })
 </script>
 

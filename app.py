@@ -45,7 +45,7 @@ def tram_passages():
                 JOIN tram_stops ON tram_passage_stops.tram_stop_id = tram_stops.id
                 JOIN tram_passages ON tram_passage_stops.tram_passage_id = tram_passages.id
                 JOIN tram_lines ON tram_passages.tram_line_id = tram_lines.id
-            WHERE tram_passages.day = 'H'
+            WHERE tram_passages.day = 'W'
             ORDER BY tram_passage_stops.stop_index, tram_passage_stops.hour, tram_passage_stops.minute
         """)
 
@@ -53,7 +53,7 @@ def tram_passages():
         for row in cursor.fetchall():
             if row[0] not in result:
                 result[row[0]] = {
-                    "id": row[0],
+                    "passage_id": row[0],
                     "tram_line": row[1],
                     "stops": []
                 }

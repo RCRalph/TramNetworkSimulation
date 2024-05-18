@@ -30,6 +30,7 @@ export default defineConfig({
     alias: {
       "@components": "/src/components",
       "@interfaces": "/src/interfaces",
+      "@classes": "/src/classes",
     },
     extensions: [
       ".js",

@@ -18,6 +18,9 @@
       ],
       "@interfaces/*": [
         "src/interfaces/*"
+      ],
+      "@classes/*": [
+        "src/classes/*"
       ]
     },
     "resolveJsonModule": true,

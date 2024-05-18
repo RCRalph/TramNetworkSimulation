@@ -6,7 +6,6 @@ interface TramStop {
   coordinates: LatLng
 }
 
-
 export type {
   TramStop,
 }
