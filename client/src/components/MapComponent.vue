@@ -78,8 +78,8 @@ onMounted(async () => {
       item.move(leafletMap.value, time.value)
     }
 
-    time.value.addMinute()
-    await new Promise(r => setTimeout(r, 1000))
+    time.value.increase()
+    await new Promise(r => setTimeout(r, 10))
   }
 })
 </script>
