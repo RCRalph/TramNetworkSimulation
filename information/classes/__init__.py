@@ -1,5 +1,6 @@
 from .day_type import DayType
 from .departure import Departure
+from .graph_node import GraphNode
 from .passage_creator import PassageCreator
 from .passage_database_setup import PassageDatabaseSetup
 from .timetable_database_setup import TimetableDatabaseSetup
