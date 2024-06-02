@@ -1,18 +1,24 @@
-import { PassageStop } from "@classes/TramPassage"
 import { LatLng } from "leaflet"
 
 export class MoveVector {
-  public dx = 0
-  public dy = 0
+  public dLat = 0
+  public dLng = 0
 
-  public setUsingStops(startStop: PassageStop, endStop: PassageStop, stopDelay: number) {
-    const denominator = (endStop.time.seconds - startStop.time.seconds) - stopDelay
+  public setUsingCoordinates(start: LatLng, end: LatLng) {
+    this.dLat = end.lat - start.lat
+    this.dLng = end.lng - start.lng
 
-    this.dx = (endStop.position.lat - startStop.position.lat) / denominator
-    this.dy = (endStop.position.lng - startStop.position.lng) / denominator
+    return this
+  }
+
+  public scale(factor: number) {
+    this.dLat *= factor
+    this.dLng *= factor
+
+    return this
   }
 
   public movePosition(position: LatLng) {
-    return new LatLng(position.lat + this.dx, position.lng + this.dy)
+    return new LatLng(position.lat + this.dLat, position.lng + this.dLng)
   }
 }

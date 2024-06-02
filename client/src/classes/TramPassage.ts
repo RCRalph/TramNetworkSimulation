@@ -1,19 +1,19 @@
 import { CircleMarker, latLng, LatLng, type Map as LeafletMap } from "leaflet"
 import { Time } from "@classes/Time"
-import { MoveVector } from "@classes/MoveVector"
+import { TramRouteLocator } from "@classes/TramRouteLocator"
 
 export interface PassageStop {
-  name: string,
+  node_id: number
+  name: string
   position: LatLng
   time: Time
 }
 
 export class TramPassage {
   private readonly marker: CircleMarker
-  private readonly moveVector = new MoveVector()
   private stopIndex = 0
-  private currentStopDelay = 0
-  private onMap = false
+  private secondsLeftAtStop = 0
+  private tramRouteLocator: TramRouteLocator | undefined = undefined
 
   constructor(
     private readonly tram_line_number: string,
@@ -45,6 +45,7 @@ export class TramPassage {
 
     for (const item of arr) {
       result.push({
+        node_id: item.node_id,
         name: item.name,
         position: latLng(item.latitude, item.longitude),
         time: new Time(item.hour, item.minute, 0),
@@ -55,25 +56,34 @@ export class TramPassage {
   }
 
   public move(map: LeafletMap, time: Time) {
-    if (this.stopIndex == 0 && this.stops[this.stopIndex].time.equals(time, this.stopDelay)) {
-      this.moveVector.setUsingStops(this.stops[this.stopIndex], this.stops[this.stopIndex + 1], this.stopDelay)
-      this.currentStopDelay = this.stopDelay
-      this.marker.addTo(map)
-      this.onMap = true
+    if (this.secondsLeftAtStop > 0) {
+      this.secondsLeftAtStop--
     } else if (this.stopIndex == this.stops.length - 1) {
       this.marker.removeFrom(map)
+      this.tramRouteLocator = undefined
       this.stopIndex = 0
-      this.onMap = false
-    } else if (this.currentStopDelay > 0) {
-      this.currentStopDelay--
-    } else if (this.onMap) {
-      this.marker.setLatLng(this.moveVector.movePosition(this.marker.getLatLng()))
+    } else if (this.stopIndex == 0 && this.stops[this.stopIndex].time.equals(time, this.stopDelay)) {
+      this.marker.addTo(map)
+      this.secondsLeftAtStop = this.stopDelay
+      this.tramRouteLocator = new TramRouteLocator(
+        this.stops[0].node_id,
+        this.stops[1].node_id,
+        this.stops[1].time.seconds - this.stops[0].time.seconds - this.stopDelay,
+      )
+    } else if (typeof this.tramRouteLocator != "undefined") {
+      this.marker.setLatLng(this.tramRouteLocator.getNewTramLocation())
 
-      if (this.stops[this.stopIndex + 1].time.equals(time, this.stopDelay)) {
+      if (this.tramRouteLocator.arrived) {
         this.stopIndex++
-        this.currentStopDelay = this.stopDelay
-        if (this.stopIndex + 1 < this.stops.length) {
-          this.moveVector.setUsingStops(this.stops[this.stopIndex], this.stops[this.stopIndex + 1], this.stopDelay)
+        this.secondsLeftAtStop = this.stopDelay
+        this.marker.setLatLng(this.stops[this.stopIndex].position)
+
+        if (this.stopIndex < this.stops.length - 1) {
+          this.tramRouteLocator = new TramRouteLocator(
+            this.stops[this.stopIndex].node_id,
+            this.stops[this.stopIndex + 1].node_id,
+            this.stops[this.stopIndex + 1].time.seconds - this.stops[this.stopIndex].time.seconds - this.stopDelay,
+          )
         }
       }
     }

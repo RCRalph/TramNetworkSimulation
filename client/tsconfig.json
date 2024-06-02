@@ -26,8 +26,6 @@
     "resolveJsonModule": true,
     "types": [
       "vite/client",
-      "vite-plugin-vue-layouts/client",
-      "unplugin-vue-router/client"
     ],
     "allowJs": false,
     "strict": true,
