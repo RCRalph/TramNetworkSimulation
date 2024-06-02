@@ -8,7 +8,8 @@ from dotenv import load_dotenv
 from classes import TramStop
 from database import StopsDatabaseSetup
 
-if __name__ == "__main__":
+
+def main():
     load_dotenv()
 
     api = overpy.Overpass()
@@ -35,3 +36,7 @@ if __name__ == "__main__":
             "INSERT INTO tram_stops VALUES (?, ?, ?, ?)",
             (item.to_sql_parameters() for item in tram_stop_set)
         )
+
+
+if __name__ == "__main__":
+    main()
