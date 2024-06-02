@@ -1,4 +1,4 @@
-from ..classes.day_type import DayType
+from classes.day_type import DayType
 from .database_preparer import DatabasePreparer
 
 

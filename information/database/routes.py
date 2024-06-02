@@ -9,7 +9,7 @@ class RoutesDatabaseSetup(DatabasePreparer):
     def _create_tram_routes_table(self):
         self.cursor.execute("""
             CREATE TABLE IF NOT EXISTS tram_routes (
-                id INTEGER PRIMARY KEY
+                id INTEGER PRIMARY KEY,
                 start_stop_id INTEGER NOT NULL,
                 end_stop_id INTEGER NOT NULL,
 
@@ -27,7 +27,7 @@ class RoutesDatabaseSetup(DatabasePreparer):
                 node_index INTEGER NOT NULL CHECK (node_index > 0),
                 latitude DECIMAL(10, 7) NOT NULL,
                 longitude DECIMAL(10, 7) NOT NULL,
-                distance_at_end DECIMAL(10, 3) NOT NULL CHECK (distance_at_end > 0),
+                distance DECIMAL(10, 3) NOT NULL CHECK (distance >= 0),
 
                 FOREIGN KEY (tram_route_id) REFERENCES tram_routes (id) ON DELETE CASCADE
             )
