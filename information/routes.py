@@ -95,21 +95,13 @@ class RouteMaker:
 
     def make_routes(self):
         for start_id, end_id in self.get_list_of_neighboring_stops():
-            self.cursor.execute("""
-                INSERT INTO tram_routes (start_stop_id, end_stop_id)
-                VALUES (?, ?)
-                RETURNING id
-            """, (start_id, end_id))
-
-            tram_route_id = self.cursor.fetchone()[0]
-
             self.cursor.executemany(
                 """
-                    INSERT INTO tram_route_nodes (tram_route_id, node_index, latitude, longitude, distance)
-                    VALUES (?, ?, ?, ? ,?)
+                    INSERT INTO tram_route_nodes (start_stop_id, end_stop_id, node_index, latitude, longitude, distance)
+                    VALUES (?, ?, ?, ?, ? ,?)
                 """,
                 (
-                    (tram_route_id, i + 1, float(node.latitude), float(node.longitude), distance)
+                    (start_id, end_id, i + 1, float(node.latitude), float(node.longitude), distance)
                     for i, (node, distance) in enumerate(self.route_between_nodes(start_id, end_id))
                 )
             )
