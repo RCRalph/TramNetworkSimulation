@@ -6,6 +6,7 @@ import overpy
 from dotenv import load_dotenv
 
 from classes import TramStop
+from database import StopsDatabaseSetup
 
 if __name__ == "__main__":
     load_dotenv()
@@ -28,14 +29,7 @@ if __name__ == "__main__":
         closing(sqlite3.connect(os.environ.get('DATABASE_NAME'), isolation_level=None)) as connection,
         closing(connection.cursor()) as cursor
     ):
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS tram_stops (
-                id INTEGER PRIMARY KEY,
-                name TEXT NOT NULL UNIQUE ON CONFLICT REPLACE,
-                latitude DECIMAL(10, 7) NOT NULL,
-                longitude DECIMAL(10, 7) NOT NULL
-            );
-        """)
+        StopsDatabaseSetup(cursor).prepare_database()
 
         cursor.executemany(
             "INSERT INTO tram_stops VALUES (?, ?, ?, ?)",

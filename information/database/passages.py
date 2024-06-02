@@ -1,13 +1,8 @@
-import os
-from sqlite3 import Cursor
-
-from .day_type import DayType
+from ..classes.day_type import DayType
+from .database_preparer import DatabasePreparer
 
 
-class PassageDatabaseSetup:
-    def __init__(self, connection_cursor: Cursor):
-        self.cursor = connection_cursor
-
+class PassageDatabaseSetup(DatabasePreparer):
     def _drop_tables(self):
         self.cursor.execute("DROP TABLE IF EXISTS tram_passage_stops")
         self.cursor.execute("DROP TABLE IF EXISTS tram_passages")
@@ -39,9 +34,6 @@ class PassageDatabaseSetup:
             )
         """)
 
-    def prepare_database(self):
-        if os.environ.get("REFRESH_DATABASE").lower() == "yes":
-            self._drop_tables()
-
+    def create_tables(self):
         self._create_tram_passages_table()
         self._create_tram_passage_stops_table()

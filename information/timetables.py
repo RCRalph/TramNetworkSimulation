@@ -4,7 +4,8 @@ from contextlib import closing
 
 from dotenv import load_dotenv
 
-from classes import TimetableDatabaseSetup, TimetableScraper
+from classes import TimetableScraper
+from database import TimetableDatabaseSetup
 
 if __name__ == "__main__":
     load_dotenv()
