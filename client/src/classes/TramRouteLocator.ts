@@ -50,9 +50,9 @@ export class TramRouteLocator {
     const lastRouteNodeIndex = this.route.findLastIndex(item => expectedDistance >= item.distance)
     const segmentLength = this.route[lastRouteNodeIndex + 1].distance - this.route[lastRouteNodeIndex].distance
 
-    return new MoveVector()
-      .setUsingCoordinates(this.route[lastRouteNodeIndex].coordinates, this.route[lastRouteNodeIndex + 1].coordinates)
+    return MoveVector
+      .fromLatLng(this.route[lastRouteNodeIndex].coordinates, this.route[lastRouteNodeIndex + 1].coordinates)
       .scale((expectedDistance - this.route[lastRouteNodeIndex].distance) / segmentLength)
-      .movePosition(this.route[lastRouteNodeIndex].coordinates)
+      .translate(this.route[lastRouteNodeIndex].coordinates)
   }
 }

@@ -1,24 +1,21 @@
 import { LatLng } from "leaflet"
 
 export class MoveVector {
-  public dLat = 0
-  public dLng = 0
+  constructor(
+    public readonly dLat = 0,
+    public readonly dLng = 0,
+  ) {
+  }
 
-  public setUsingCoordinates(start: LatLng, end: LatLng) {
-    this.dLat = end.lat - start.lat
-    this.dLng = end.lng - start.lng
-
-    return this
+  public static fromLatLng(start: LatLng, end: LatLng) {
+    return new MoveVector(end.lat - start.lat, end.lng - start.lng)
   }
 
   public scale(factor: number) {
-    this.dLat *= factor
-    this.dLng *= factor
-
-    return this
+    return new MoveVector(this.dLat * factor, this.dLng * factor)
   }
 
-  public movePosition(position: LatLng) {
-    return new LatLng(position.lat + this.dLat, position.lng + this.dLng)
+  public translate(latlng: LatLng) {
+    return new LatLng(latlng.lat + this.dLat, latlng.lng + this.dLng)
   }
 }
