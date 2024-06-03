@@ -73,12 +73,18 @@ onMounted(async () => {
     throw new Error("Map not initialized")
   }
 
+  for (const item of props.tramPassages) {
+    item.setMap(leafletMap.value)
+  }
+
+  const tramsOnMap = new Set<CircleMarker>()
+
   while (true) {
     for (const item of props.tramPassages) {
-      item.move(leafletMap.value, time.value)
+      item.move(time.value, tramsOnMap)
     }
 
-    time.value.increase()
+    time.value.advance()
     await new Promise(r => setTimeout(r, 10))
   }
 })

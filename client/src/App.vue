@@ -19,7 +19,7 @@ import axios from "axios"
 import { LatLng, latLng } from "leaflet"
 import { TramPassage } from "@classes/TramPassage"
 import { Time } from "@classes/Time"
-import { TramRouteLocator } from "@classes/TramRouteLocator"
+import { TramRouteIndicator } from "@classes/TramRouteIndicator"
 
 const tramStops = ref<TramStop[]>([])
 
@@ -46,7 +46,7 @@ async function setTramRoutes() {
     .then(data => {
       for (const startNode in data) {
         for (let endNode in data[Number(startNode)]) {
-          TramRouteLocator.addRoute(
+          TramRouteIndicator.addRoute(
             Number(startNode),
             Number(endNode),
             data[Number(startNode)][Number(endNode)].map((item: Record<string, number>) => ({

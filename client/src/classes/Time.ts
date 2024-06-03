@@ -9,7 +9,7 @@ export class Time {
     }
   }
 
-  public increase() {
+  public advance() {
     this.second = (this.second + 1) % 60
     this.minute = (this.minute + Number(!this.second)) % 60
     this.hour = (this.hour + Number(!this.minute && !this.second)) % 24
