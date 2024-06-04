@@ -71,12 +71,9 @@ export class TramRouteIndicator {
     const futureRouteNodeIndex = this.getRouteNodeIndex(futureDistance)
 
     const result = [this.getLocationForDistance(currentDistance)]
+
     for (let i = currentRouteNodeIndex + 1; i <= futureRouteNodeIndex; i++) {
       result.push(this.route[i].coordinates)
-    }
-
-    if (futureDistance < this.totalDistance) {
-      result.push(this.getLocationForDistance(futureDistance))
     }
 
     return result

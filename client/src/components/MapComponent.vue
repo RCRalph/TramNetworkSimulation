@@ -77,15 +77,15 @@ onMounted(async () => {
     item.setMap(leafletMap.value)
   }
 
-  const tramsOnMap = new Set<CircleMarker>()
-
   while (true) {
+    console.log(time.value.toString(), time.value.seconds)
+
     for (const item of props.tramPassages) {
-      item.move(time.value, tramsOnMap)
+      item.move(time.value)
     }
 
     time.value.advance()
-    await new Promise(r => setTimeout(r, 10))
+    await new Promise(r => setTimeout(r, 1))
   }
 })
 </script>

@@ -1,4 +1,6 @@
 export class Time {
+  public static readonly SECONDS_IN_HOUR = 24 * 60 * 60
+
   constructor(private hour: number, private minute: number, private second: number) {
     if (!(Number.isInteger(hour) && 0 <= hour && hour < 24)) {
       throw new Error("Invalid hour value")
