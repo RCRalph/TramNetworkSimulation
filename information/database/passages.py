@@ -1,4 +1,5 @@
 from classes.day_type import DayType
+
 from .database_preparer import DatabasePreparer
 
 
@@ -34,6 +35,6 @@ class PassageDatabaseSetup(DatabasePreparer):
             )
         """)
 
-    def create_tables(self):
+    def _create_tables(self):
         self._create_tram_passages_table()
         self._create_tram_passage_stops_table()

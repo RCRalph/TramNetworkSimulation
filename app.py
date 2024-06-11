@@ -18,7 +18,7 @@ def index():
 
 @app.route("/api/stop-locations")
 def stop_locations():
-    with closing(sqlite3.connect("db.sqlite")) as connection, closing(connection.cursor()) as cursor:
+    with closing(sqlite3.connect("2024-05-07.sqlite")) as connection, closing(connection.cursor()) as cursor:
         cursor.execute("""
             SELECT id, name, latitude, longitude
             FROM tram_stops
@@ -32,7 +32,7 @@ def stop_locations():
 
 @app.route("/api/tram-passages")
 def tram_passages():
-    with closing(sqlite3.connect("db.sqlite")) as connection, closing(connection.cursor()) as cursor:
+    with closing(sqlite3.connect("2024-05-07.sqlite")) as connection, closing(connection.cursor()) as cursor:
         cursor.execute("""
             SELECT
                 tram_passage_stops.tram_stop_id,
@@ -74,7 +74,7 @@ def tram_passages():
 
 @app.route("/api/tram-routes")
 def tram_routes():
-    with closing(sqlite3.connect("db.sqlite")) as connection, closing(connection.cursor()) as cursor:
+    with closing(sqlite3.connect("2024-05-07.sqlite")) as connection, closing(connection.cursor()) as cursor:
         cursor.execute("""
             SELECT start_stop_id, end_stop_id, latitude, longitude, distance
             FROM tram_route_nodes

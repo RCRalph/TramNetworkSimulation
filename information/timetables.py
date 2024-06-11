@@ -1,11 +1,11 @@
 import os
-import sqlite3
 import re
-
+import sqlite3
 from contextlib import closing
-from dotenv import load_dotenv
-from time import sleep
 from random import uniform
+from time import sleep
+
+from dotenv import load_dotenv
 from mechanicalsoup import StatefulBrowser
 
 from classes import DayType, Departure
@@ -19,6 +19,17 @@ class TimetableScraper:
         self.browser = StatefulBrowser()
         self.departures: list[Departure] = []
 
+    def _get_new_stop_id(self) -> tuple[int, str]:
+        while True:
+            stop_name = input("Provide stop name: ")
+            self.cursor.execute("SELECT id FROM tram_stops WHERE name LIKE ?", [stop_name])
+
+            rows = self.cursor.fetchone()
+            if rows is not None:
+                return rows[0], stop_name
+
+            print(f"Stop '{stop_name}' not found")
+
     def _scrape_departures(self, variant_id: int, stop_index: int, stop_name: str, stop_url: str):
         self.cursor.execute("SELECT id FROM tram_stops WHERE name LIKE ?", [stop_name])
         rows, stop_id = self.cursor.fetchall(), None
@@ -27,6 +38,7 @@ class TimetableScraper:
             stop_id = rows[0][0]
         else:
             print(f"Stop '{stop_name}' not found")
+            stop_id, stop_name = self._get_new_stop_id()
 
         # For stops where line terminates, the timetable doesn't exist.
         # To combat this problem, we assume a 1-minute travel time between the second-last and last stop.
@@ -49,6 +61,9 @@ class TimetableScraper:
                             int(re.sub("[^0-9]", "", minute))
                         ))
         else:
+            if input(f"Last stop assumed as {stop_name} ({stop_id}). Do you confirm? [Y/n] ").lower() == "n":
+                stop_id, stop_name = self._get_new_stop_id()
+
             self.departures = [
                 Departure(
                     stop_id, variant_id,
