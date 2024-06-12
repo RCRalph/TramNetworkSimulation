@@ -5,8 +5,8 @@ from contextlib import closing
 import overpy
 from dotenv import load_dotenv
 
-from classes import TramStop
-from database import StopsDatabaseSetup
+from .classes import TramStop
+from .database import StopsDatabaseSetup
 
 
 def main():

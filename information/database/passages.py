@@ -1,6 +1,5 @@
-from classes.day_type import DayType
-
 from .database_preparer import DatabasePreparer
+from ..classes import DayType
 
 
 class PassageDatabaseSetup(DatabasePreparer):

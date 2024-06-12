@@ -8,8 +8,8 @@ from time import sleep
 from dotenv import load_dotenv
 from mechanicalsoup import StatefulBrowser
 
-from classes import DayType, Departure
-from database import TimetableDatabaseSetup
+from .classes import DayType, Departure
+from .database import TimetableDatabaseSetup
 
 
 class TimetableScraper:

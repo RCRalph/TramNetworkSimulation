@@ -1,14 +1,14 @@
 import os
 import sqlite3
-
 from collections import defaultdict
 from contextlib import closing
-from dotenv import load_dotenv
-from overpy import Overpass
 from queue import PriorityQueue
 
-from classes import GraphNode
-from database import RoutesDatabaseSetup
+from dotenv import load_dotenv
+from overpy import Overpass
+
+from .classes import GraphNode
+from .database import RoutesDatabaseSetup
 
 
 class RouteMaker:

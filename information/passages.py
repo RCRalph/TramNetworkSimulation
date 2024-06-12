@@ -1,11 +1,12 @@
 import os
 import sqlite3
-from contextlib import closing
 from collections import defaultdict
+from contextlib import closing
+
 from dotenv import load_dotenv
 
-from classes import DayType, Departure, TramPassage, TramStop
-from database import PassageDatabaseSetup
+from .classes import DayType, Departure, TramPassage, TramStop
+from .database import PassageDatabaseSetup
 
 
 class PassageCreator:
