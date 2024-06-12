@@ -155,3 +155,19 @@ onMounted(() => {
     .then(() => ready.value = true)
 })
 </script>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap');
+
+.leaflet-tooltip.line-number-label {
+  font-family: "Archivo Black", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  color: black;
+  font-size: 12px;
+
+  background-color: transparent;
+  border: transparent;
+  box-shadow: none;
+}
+</style>

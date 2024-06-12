@@ -1,4 +1,5 @@
-import { CircleMarker, latLng, LatLng, type Map as LeafletMap } from "leaflet"
+import { icon, latLng, LatLng, type Map as LeafletMap, Marker } from "leaflet"
+import "leaflet-rotatedmarker"
 import { Time } from "@classes/Time"
 import { TramRouteIndicator } from "@classes/TramRouteIndicator"
 import { AdvancementOracle } from "@classes/AdvancementOracle"
@@ -12,12 +13,17 @@ export interface PassageStop {
 
 export class TramPassage {
   public static readonly MIN_STOP_DELAY = 15
+  private static readonly TRAM_ICON = icon({
+    iconUrl: "tram-icon.png",
+    iconSize: [20, 25],
+    iconAnchor: [10, 15],
+  })
 
-  public readonly marker: CircleMarker
+  public readonly marker: Marker
   private stopIndex = 0
   private secondsLeftAtStop = 0
   private map: LeafletMap | undefined = undefined
-  private tramRouteLocator: TramRouteIndicator | undefined = undefined
+  private tramRouteIndicator: TramRouteIndicator | undefined = undefined
 
   private stopDelay = 0
 
@@ -33,15 +39,16 @@ export class TramPassage {
 
     this.updateStopDelay()
 
-    this.marker = new CircleMarker(
-      this.stops[this.stopIndex].position,
-      {
-        radius: 10,
-        color: "red",
-      },
-    )
+    this.marker = new Marker(this.stops[this.stopIndex].position, {
+      icon: TramPassage.TRAM_ICON,
+    })
 
-    this.marker.bindTooltip(this.tooltipText)
+
+    this.marker.bindTooltip(this.tram_line_number, {
+      permanent: true,
+      direction: "center",
+      className: "line-number-label",
+    })
   }
 
   private updateStopDelay() {
@@ -76,7 +83,7 @@ export class TramPassage {
   private setNewTramRouteIndicator() {
     const scheduleTime = this.stops[this.stopIndex + 1].time.seconds - this.stops[this.stopIndex].time.seconds
 
-    this.tramRouteLocator = new TramRouteIndicator(
+    this.tramRouteIndicator = new TramRouteIndicator(
       this.stops[this.stopIndex].node_id,
       this.stops[this.stopIndex + 1].node_id,
       (scheduleTime - TramPassage.MIN_STOP_DELAY + Time.SECONDS_IN_DAY) % Time.SECONDS_IN_DAY,
@@ -89,18 +96,19 @@ export class TramPassage {
     }
 
     this.advancementOracle.unregisterTram(this)
-    this.tramRouteLocator = undefined
+    this.tramRouteIndicator = undefined
     this.stopIndex = 0
   }
 
   private addToMap() {
-    if (this.map) {
-      this.marker.addTo(this.map)
-    }
-
     this.advancementOracle.registerTram(this)
     this.secondsLeftAtStop = this.updateStopDelay()
     this.setNewTramRouteIndicator()
+
+    if (this.map) {
+      this.marker.setRotationAngle(this.tramRouteIndicator!.getTramRotation())
+      this.marker.addTo(this.map)
+    }
   }
 
   public move(time: Time, blockTime: number, checkTime: number) {
@@ -111,15 +119,16 @@ export class TramPassage {
     } else if (this.stopIndex == 0 && this.stops[this.stopIndex].time.equals(time, this.stopDelay)) {
       this.addToMap()
     } else if (
-      this.tramRouteLocator && this.advancementOracle.canAdvance(
+      this.tramRouteIndicator && this.advancementOracle.canAdvance(
         this,
-        this.tramRouteLocator?.getFutureRoute(blockTime) ?? [],
-        this.tramRouteLocator?.getFutureRoute(checkTime) ?? [],
+        this.tramRouteIndicator?.getFutureRoute(blockTime) ?? [],
+        this.tramRouteIndicator?.getFutureRoute(checkTime) ?? [],
       )
     ) {
-      this.marker.setLatLng(this.tramRouteLocator.getNewTramLocation())
+      this.marker.setRotationAngle(this.tramRouteIndicator.getTramRotation())
+      this.marker.setLatLng(this.tramRouteIndicator.getNewTramLocation())
 
-      if (this.tramRouteLocator.arrived) {
+      if (this.tramRouteIndicator.arrived) {
         this.stopIndex++
         this.secondsLeftAtStop = this.updateStopDelay()
         this.marker.setLatLng(this.stops[this.stopIndex].position)

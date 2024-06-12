@@ -11,6 +11,8 @@ export class TramRouteIndicator {
 
   private currentTravelTime = 0
 
+  private moveVector: MoveVector = new MoveVector()
+
   constructor(
     private readonly startStop: number,
     private readonly endStop: number,
@@ -23,6 +25,11 @@ export class TramRouteIndicator {
     } else if (!(Number.isInteger(this.totalTravelTime) && this.totalTravelTime > 0)) {
       throw new Error(`Invalid travel time value: ${this.totalTravelTime}`)
     }
+
+    this.moveVector = MoveVector.fromLatLng(
+      this.getLocationForDistance(0),
+      this.getLocationForDistance(this.velocity),
+    )
   }
 
   public static addRoute(startNode: number, endNode: number, nodes: TramRouteNode[]) {
@@ -89,6 +96,26 @@ export class TramRouteIndicator {
   }
 
   public getNewTramLocation() {
-    return this.getLocationForDistance(this.velocity * this.currentTravelTime++)
+    const distance = this.velocity * this.currentTravelTime
+
+    if (this.currentTravelTime) {
+      this.moveVector = MoveVector.fromLatLng(
+        this.getLocationForDistance(this.velocity * (this.currentTravelTime - 1)),
+        this.getLocationForDistance(distance),
+      )
+    } else {
+      this.moveVector = MoveVector.fromLatLng(
+        this.getLocationForDistance(distance),
+        this.getLocationForDistance(this.velocity * (this.currentTravelTime + 1)),
+      )
+    }
+
+    this.currentTravelTime++
+
+    return this.getLocationForDistance(distance)
+  }
+
+  public getTramRotation() {
+    return Math.atan2(this.moveVector.dLng, this.moveVector.dLat) * 180 / Math.PI
   }
 }
