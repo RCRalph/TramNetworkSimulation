@@ -61,10 +61,6 @@ export class TramPassage {
     this.map = map
   }
 
-  private get tooltipText() {
-    return `Line: ${this.tram_line_number}<br>Passage ID: ${this.passage_id}`
-  }
-
   public static getPassageStopArray(arr: any[]) {
     const result: PassageStop[] = []
 
