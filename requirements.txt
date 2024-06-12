@@ -13,6 +13,7 @@ Flask==3.0.3
 folium==0.16.0
 geographiclib==2.0
 geopy==2.4.1
+gunicorn==22.0.0
 idna==3.7
 ipykernel==6.29.4
 ipython==8.24.0
