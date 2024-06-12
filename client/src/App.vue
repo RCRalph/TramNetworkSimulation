@@ -164,7 +164,6 @@ onMounted(() => {
       }
     })
     .then(setTramPassages)
-    .then(() => new Promise(resolve => setTimeout(resolve, 10000)))
     .then(() => ready.value = true)
 })
 </script>
