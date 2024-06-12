@@ -102,6 +102,7 @@ export class TramPassage {
     this.setNewTramRouteIndicator()
 
     if (this.map) {
+      // @ts-expect-error
       this.marker.setRotationAngle(this.tramRouteIndicator!.getTramRotation())
       this.marker.addTo(this.map)
     }
@@ -121,6 +122,7 @@ export class TramPassage {
         this.tramRouteIndicator?.getFutureRoute(checkTime) ?? [],
       )
     ) {
+      // @ts-expect-error
       this.marker.setRotationAngle(this.tramRouteIndicator.getTramRotation())
       this.marker.setLatLng(this.tramRouteIndicator.getNewTramLocation())
 
