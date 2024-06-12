@@ -8,7 +8,7 @@ export class AdvancementOracle {
   private tramsWaitingForRegistration = new Set<TramPassage>()
 
   private latLngKey(latlng: LatLng) {
-    return `${Math.round(latlng.lat * 10_000_000) / 10_000_000},${Math.round(latlng.lng * 10_000_000) / 10_000_000}`
+    return `${Math.floor(latlng.lat * 10_000_000) / 10_000_000},${Math.floor(latlng.lng * 10_000_000) / 10_000_000}`
   }
 
   private addTramToMap(tram: TramPassage) {
@@ -17,23 +17,27 @@ export class AdvancementOracle {
   }
 
   public registerTram(tram: TramPassage) {
-    if (this.latLngKey(tram.marker.getLatLng()) in this.occupiedNodes) {
-      this.tramsWaitingForRegistration.add(tram)
-    } else {
+    if (!this.occupiedNodes.has(this.latLngKey(tram.marker.getLatLng()))) {
       this.addTramToMap(tram)
+    } else {
+      this.tramsWaitingForRegistration.add(tram)
     }
   }
 
   public unregisterTram(tram: TramPassage) {
+    if (!this.tramsOnMap.has(tram)) return
+
     this.tramsOnMap.delete(tram)
 
     for (const node of this.previousRoutes.get(tram) ?? []) {
       this.occupiedNodes.delete(this.latLngKey(node))
     }
+
+    console.log(this.tramsOnMap, this.occupiedNodes)
   }
 
   private laysOnSegment(start: LatLng, end: LatLng, point: LatLng) {
-    const epsilon = 1e-9
+    const epsilon = 1e-12
     const triangleArea = Math.abs(
       start.lng * (end.lat - point.lat) + end.lng * (point.lat - start.lat) + point.lng * (start.lat - end.lat),
     )
@@ -71,7 +75,7 @@ export class AdvancementOracle {
 
     // Check for trams waiting for registration
     for (const item of this.tramsWaitingForRegistration) {
-      if (!(this.latLngKey(item.marker.getLatLng()) in this.occupiedNodes)) {
+      if (!this.occupiedNodes.has(this.latLngKey(item.marker.getLatLng()))) {
         this.addTramToMap(item)
         this.tramsWaitingForRegistration.delete(item)
       }

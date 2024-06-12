@@ -14,7 +14,9 @@ import { Time } from "@classes/Time"
 
 const props = defineProps<{
   tramStops: TramStop[],
-  tramPassages: TramPassage[]
+  tramPassages: TramPassage[],
+  running: boolean,
+  timeout: number
 }>()
 
 const time = defineModel<Time>("time", {required: true})
@@ -69,23 +71,27 @@ onMounted(async () => {
   prepareMap()
   placeTramStops()
 
-  if (!leafletMap.value) {
-    throw new Error("Map not initialized")
-  }
-
-  for (const item of props.tramPassages) {
-    item.setMap(leafletMap.value)
-  }
-
   while (true) {
-    console.log(time.value.toString(), time.value.seconds)
-
-    for (const item of props.tramPassages) {
-      item.move(time.value)
+    while (!leafletMap.value) {
+      await new Promise(resolve => setTimeout(resolve, 10))
     }
 
-    time.value.advance()
-    await new Promise(r => setTimeout(r, 1))
+    while (!props.running) {
+      await new Promise(resolve => setTimeout(resolve, 10))
+    }
+
+    for (const item of props.tramPassages) {
+      item.setMap(leafletMap.value)
+    }
+
+    while (props.running) {
+      for (const item of props.tramPassages) {
+        item.move(time.value)
+      }
+
+      time.value.advance()
+      await new Promise(resolve => setTimeout(resolve, props.timeout))
+    }
   }
 })
 </script>
@@ -97,6 +103,6 @@ onMounted(async () => {
 <style scoped>
 #map {
   width: 100%;
-  height: 100%;
+  height: calc(100vh - 64px);
 }
 </style>

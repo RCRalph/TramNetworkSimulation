@@ -1,7 +1,7 @@
 export class Time {
-  public static readonly SECONDS_IN_HOUR = 24 * 60 * 60
+  public static readonly SECONDS_IN_DAY = 24 * 60 * 60
 
-  constructor(private hour: number, private minute: number, private second: number) {
+  constructor(private hour = 0, private minute = 0, private second = 0) {
     if (!(Number.isInteger(hour) && 0 <= hour && hour < 24)) {
       throw new Error("Invalid hour value")
     } else if (!(Number.isInteger(minute) && 0 <= minute && minute < 60)) {
@@ -11,10 +11,25 @@ export class Time {
     }
   }
 
-  public advance() {
+  public advance(wrapTime = true) {
     this.second = (this.second + 1) % 60
     this.minute = (this.minute + Number(!this.second)) % 60
-    this.hour = (this.hour + Number(!this.minute && !this.second)) % 24
+
+    const hourChange = Number(!this.minute && !this.second)
+    if (wrapTime) {
+      this.hour = (this.hour + hourChange) % 24
+    } else {
+      this.hour += hourChange
+    }
+  }
+
+  public subtractMinute() {
+    if (this.minute) {
+      this.minute--
+    } else {
+      this.minute = 59
+      this.hour = (this.hour - 1 + 24) % 24
+    }
   }
 
   public equals(other: any, delay = 0) {
@@ -34,6 +49,8 @@ export class Time {
   }
 
   public toString() {
-    return `${this.hour}:${this.minute}:${this.second}`
+    return [this.hour, this.minute, this.second]
+      .map(item => String(item).padStart(2, "0"))
+      .join(":")
   }
 }

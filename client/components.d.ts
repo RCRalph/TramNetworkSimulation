@@ -7,6 +7,7 @@ export {}
 
 declare module 'vue' {
   export interface GlobalComponents {
+    HeaderComponent: typeof import('./src/components/HeaderComponent.vue')['default']
     MapComponent: typeof import('./src/components/MapComponent.vue')['default']
   }
 }

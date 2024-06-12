@@ -11,17 +11,20 @@ export interface PassageStop {
 }
 
 export class TramPassage {
+  public static readonly MIN_STOP_DELAY = 15
+
   public readonly marker: CircleMarker
   private stopIndex = 0
   private secondsLeftAtStop = 0
   private map: LeafletMap | undefined = undefined
   private tramRouteLocator: TramRouteIndicator | undefined = undefined
 
+  private stopDelay = 0
+
   constructor(
     public readonly tram_line_number: string,
     public readonly passage_id: number,
-    private readonly stops: PassageStop[],
-    private readonly stopDelay: number,
+    readonly stops: PassageStop[],
     private readonly advancementOracle: AdvancementOracle,
   ) {
     if (this.stops.length < 2) {
@@ -29,7 +32,7 @@ export class TramPassage {
     }
 
     this.marker = new CircleMarker(
-      stops[0].position,
+      this.stops[this.stopIndex].position,
       {
         radius: 10,
         color: "red",
@@ -43,6 +46,12 @@ export class TramPassage {
         new Polyline(this.futureRoute(30)).addTo(this.map)
       }
     })
+  }
+
+  private updateStopDelay() {
+    this.stopDelay = Math.round(Math.random() * 10) + 15
+
+    return this.stopDelay
   }
 
   public setMap(map: LeafletMap) {
@@ -69,15 +78,12 @@ export class TramPassage {
   }
 
   private setNewTramRouteIndicator() {
+    const scheduleTime = this.stops[this.stopIndex + 1].time.seconds - this.stops[this.stopIndex].time.seconds
+
     this.tramRouteLocator = new TramRouteIndicator(
       this.stops[this.stopIndex].node_id,
       this.stops[this.stopIndex + 1].node_id,
-      (
-        this.stops[this.stopIndex + 1].time.seconds -
-        this.stops[this.stopIndex].time.seconds -
-        this.stopDelay +
-        Time.SECONDS_IN_HOUR
-      ) % Time.SECONDS_IN_HOUR,
+      (scheduleTime - TramPassage.MIN_STOP_DELAY + Time.SECONDS_IN_DAY) % Time.SECONDS_IN_DAY,
     )
   }
 
@@ -97,7 +103,7 @@ export class TramPassage {
     }
 
     this.advancementOracle.registerTram(this)
-    this.secondsLeftAtStop = this.stopDelay
+    this.secondsLeftAtStop = this.updateStopDelay()
     this.setNewTramRouteIndicator()
   }
 
@@ -112,12 +118,15 @@ export class TramPassage {
       this.removeFromMap()
     } else if (this.stopIndex == 0 && this.stops[this.stopIndex].time.equals(time, this.stopDelay)) {
       this.addToMap()
-    } else if (this.tramRouteLocator && this.advancementOracle.canAdvance(this, this.futureRoute(15), this.futureRoute(30))) {
+    } else if (
+      this.tramRouteLocator &&
+      this.advancementOracle.canAdvance(this, this.futureRoute(5), this.futureRoute(10))
+    ) {
       this.marker.setLatLng(this.tramRouteLocator.getNewTramLocation())
 
       if (this.tramRouteLocator.arrived) {
         this.stopIndex++
-        this.secondsLeftAtStop = this.stopDelay
+        this.secondsLeftAtStop = this.updateStopDelay()
         this.marker.setLatLng(this.stops[this.stopIndex].position)
 
         if (this.stopIndex < this.stops.length - 1) {
@@ -125,5 +134,11 @@ export class TramPassage {
         }
       }
     }
+  }
+
+  public reset() {
+    this.removeFromMap()
+    this.marker.setLatLng(this.stops[0].position)
+    this.advancementOracle.unregisterTram(this)
   }
 }
