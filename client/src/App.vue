@@ -28,6 +28,18 @@
         :disable-changes="disableChanges"
       ></FooterComponent>
     </v-main>
+
+    <v-overlay
+      v-else
+      :model-value="true"
+      opacity="0"
+      class="d-flex justify-center align-center"
+    >
+      <v-progress-circular
+        indeterminate
+        size="128"
+      ></v-progress-circular>
+    </v-overlay>
   </v-app>
 </template>
 
@@ -152,6 +164,7 @@ onMounted(() => {
       }
     })
     .then(setTramPassages)
+    .then(() => new Promise(resolve => setTimeout(resolve, 10000)))
     .then(() => ready.value = true)
 })
 </script>
