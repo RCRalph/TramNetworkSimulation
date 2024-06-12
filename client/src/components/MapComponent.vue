@@ -16,7 +16,9 @@ const props = defineProps<{
   tramStops: TramStop[],
   tramPassages: TramPassage[],
   running: boolean,
-  timeout: number
+  timeout: number,
+  blockTime: number,
+  checkTime: number
 }>()
 
 const time = defineModel<Time>("time", {required: true})
@@ -71,12 +73,9 @@ onMounted(async () => {
   prepareMap()
   placeTramStops()
 
+  // noinspection InfiniteLoopJS
   while (true) {
-    while (!leafletMap.value) {
-      await new Promise(resolve => setTimeout(resolve, 10))
-    }
-
-    while (!props.running) {
+    while (!leafletMap.value || !props.running) {
       await new Promise(resolve => setTimeout(resolve, 10))
     }
 
@@ -86,7 +85,7 @@ onMounted(async () => {
 
     while (props.running) {
       for (const item of props.tramPassages) {
-        item.move(time.value)
+        item.move(time.value, props.blockTime, props.checkTime)
       }
 
       time.value.advance()
@@ -103,6 +102,6 @@ onMounted(async () => {
 <style scoped>
 #map {
   width: 100%;
-  height: calc(100vh - 64px);
+  height: calc(100vh - 64px - 56px);
 }
 </style>

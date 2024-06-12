@@ -1,4 +1,4 @@
-import { CircleMarker, latLng, LatLng, type Map as LeafletMap, Polyline } from "leaflet"
+import { CircleMarker, latLng, LatLng, type Map as LeafletMap } from "leaflet"
 import { Time } from "@classes/Time"
 import { TramRouteIndicator } from "@classes/TramRouteIndicator"
 import { AdvancementOracle } from "@classes/AdvancementOracle"
@@ -31,6 +31,8 @@ export class TramPassage {
       throw new Error("Not enough stops")
     }
 
+    this.updateStopDelay()
+
     this.marker = new CircleMarker(
       this.stops[this.stopIndex].position,
       {
@@ -40,12 +42,6 @@ export class TramPassage {
     )
 
     this.marker.bindTooltip(this.tooltipText)
-
-    this.marker.addEventListener("click", () => {
-      if (this.map) {
-        new Polyline(this.futureRoute(30)).addTo(this.map)
-      }
-    })
   }
 
   private updateStopDelay() {
@@ -107,11 +103,7 @@ export class TramPassage {
     this.setNewTramRouteIndicator()
   }
 
-  private futureRoute(seconds: number) {
-    return this.tramRouteLocator?.getFutureRoute(seconds) ?? []
-  }
-
-  public move(time: Time) {
+  public move(time: Time, blockTime: number, checkTime: number) {
     if (this.secondsLeftAtStop > 0) {
       this.secondsLeftAtStop--
     } else if (this.stopIndex == this.stops.length - 1) {
@@ -119,8 +111,11 @@ export class TramPassage {
     } else if (this.stopIndex == 0 && this.stops[this.stopIndex].time.equals(time, this.stopDelay)) {
       this.addToMap()
     } else if (
-      this.tramRouteLocator &&
-      this.advancementOracle.canAdvance(this, this.futureRoute(5), this.futureRoute(10))
+      this.tramRouteLocator && this.advancementOracle.canAdvance(
+        this,
+        this.tramRouteLocator?.getFutureRoute(blockTime) ?? [],
+        this.tramRouteLocator?.getFutureRoute(checkTime) ?? [],
+      )
     ) {
       this.marker.setLatLng(this.tramRouteLocator.getNewTramLocation())
 

@@ -1,5 +1,5 @@
 <template>
-  <v-footer>
+  <v-footer tag="header">
     <v-row no-gutters>
       <v-col cols="2">
         <div class="button-box">
@@ -46,7 +46,7 @@
           v-model="dayType"
           :items="props.dayTypes"
           label="Day type"
-          variant="solo"
+          variant="outlined"
           density="comfortable"
           hide-details
         ></v-select>
@@ -71,6 +71,7 @@ const emit = defineEmits<{
 
 const running = defineModel<boolean>("running", {required: true})
 const dayType = defineModel<string>("dayType", {required: true})
+const disableChanges = defineModel<boolean>("disableChanges", {required: true})
 
 function useTimer() {
   let timer: NodeJS.Timeout | undefined = undefined
@@ -125,6 +126,7 @@ function useButtons() {
   function onStart() {
     startTimer()
     running.value = true
+    disableChanges.value = true
     disabledButtons.value = {
       start: true,
       pause: false,
@@ -145,6 +147,7 @@ function useButtons() {
   function onReset() {
     resetTimer()
     running.value = false
+    disableChanges.value = false
     disabledButtons.value = {
       start: false,
       pause: true,

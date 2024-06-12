@@ -55,6 +55,11 @@ export class TramRouteIndicator {
 
   private getLocationForDistance(distance: number) {
     const routeNodeIndex = this.getRouteNodeIndex(distance)
+
+    if (routeNodeIndex == this.route.length - 1) {
+      return this.route[this.route.length - 1].coordinates
+    }
+
     const lastSegmentLength = this.route[routeNodeIndex + 1].distance - this.route[routeNodeIndex].distance
 
     return MoveVector
@@ -74,6 +79,10 @@ export class TramRouteIndicator {
 
     for (let i = currentRouteNodeIndex + 1; i <= futureRouteNodeIndex; i++) {
       result.push(this.route[i].coordinates)
+    }
+
+    if (futureRouteNodeIndex < this.route.length - 1) {
+      result.push(this.getLocationForDistance(futureDistance))
     }
 
     return result

@@ -30,10 +30,12 @@ export class Time {
       this.minute = 59
       this.hour = (this.hour - 1 + 24) % 24
     }
+
+    return this
   }
 
   public equals(other: any, delay = 0) {
-    return other instanceof Time && this.seconds + delay == other.seconds
+    return other instanceof Time && this.seconds - delay == other.seconds
   }
 
   public get seconds() {

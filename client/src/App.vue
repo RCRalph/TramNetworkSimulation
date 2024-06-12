@@ -2,10 +2,10 @@
   <v-app>
     <v-main v-if="ready">
       <HeaderComponent
-        v-model:timeout="timeout"
         v-model:running="running"
         v-model:loading="loading"
         v-model:day-type="dayType"
+        v-model:disable-changes="disableChanges"
         :time="time as Time"
         :day-types="dayTypes"
         @reset="resetTramPassages"
@@ -17,7 +17,16 @@
         :tram-passages="tramPassages as TramPassage[]"
         :running="running"
         :timeout="timeout"
+        :block-time="nodeBlocking"
+        :check-time="nodeChecking"
       ></MapComponent>
+
+      <FooterComponent
+        v-model:timeout="timeout"
+        v-model:node-blocking="nodeBlocking"
+        v-model:node-checking="nodeChecking"
+        :disable-changes="disableChanges"
+      ></FooterComponent>
     </v-main>
   </v-app>
 </template>
@@ -29,6 +38,7 @@ import { LatLng, latLng } from "leaflet"
 
 import MapComponent from "@components/MapComponent.vue"
 import HeaderComponent from "@components/HeaderComponent.vue"
+import FooterComponent from "@components/FooterComponent.vue"
 
 import { TramStop } from "@interfaces/TramStop"
 import { GlobalSettings, TramPassages } from "@interfaces/API"
@@ -43,9 +53,13 @@ const loading = ref(false)
 
 const time = ref(new Time())
 
-const timeout = ref<number>(1)
-const running = ref<boolean>(false)
-const dayType = ref<string>("")
+const timeout = ref(10)
+const nodeBlocking = ref(5)
+const nodeChecking = ref(10)
+const disableChanges = ref(false)
+
+const running = ref(false)
+const dayType = ref("")
 
 const tramStops: TramStop[] = []
 const dayTypes: string[] = []
@@ -75,8 +89,7 @@ function useTramPassages() {
           ))
         }
 
-        initialTime.subtractMinute()
-        time.value = initialTime.clone()
+        time.value = initialTime.subtractMinute().clone()
       })
   }
 
@@ -92,7 +105,7 @@ function useTramPassages() {
     running.value = false
 
     resetTramPassages()
-    initialTime = new Time()
+    initialTime = new Time().subtractMinute()
     tramPassages.value = []
 
     setTramPassages().then(() => loading.value = false)

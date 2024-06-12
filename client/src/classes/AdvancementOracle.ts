@@ -32,8 +32,6 @@ export class AdvancementOracle {
     for (const node of this.previousRoutes.get(tram) ?? []) {
       this.occupiedNodes.delete(this.latLngKey(node))
     }
-
-    console.log(this.tramsOnMap, this.occupiedNodes)
   }
 
   private laysOnSegment(start: LatLng, end: LatLng, point: LatLng) {
@@ -47,19 +45,19 @@ export class AdvancementOracle {
       Math.min(start.lng, end.lng) - epsilon <= point.lng && point.lng <= Math.max(start.lng, end.lng) + epsilon
   }
 
-  public canAdvance(tram: TramPassage, route: LatLng[], futureRoute: LatLng[]) {
+  public canAdvance(tram: TramPassage, blockRoute: LatLng[], checkRoute: LatLng[]) {
     // Check for trams ahead
-    for (let i = 1; i < futureRoute.length; i++) {
+    for (let i = 1; i < checkRoute.length; i++) {
       for (const item of this.tramsOnMap) {
         if (
           item != tram &&
-          this.laysOnSegment(futureRoute[i - 1], futureRoute[i], item.marker.getLatLng())
+          this.laysOnSegment(checkRoute[i - 1], checkRoute[i], item.marker.getLatLng())
         ) return false
       }
     }
 
     // Check intersecting paths
-    for (const node of futureRoute) {
+    for (const node of checkRoute) {
       if ((this.occupiedNodes.get(this.latLngKey(node)) ?? tram) != tram) return false
     }
 
@@ -67,11 +65,11 @@ export class AdvancementOracle {
       this.occupiedNodes.delete(this.latLngKey(node))
     }
 
-    for (const node of route) {
+    for (const node of blockRoute) {
       this.occupiedNodes.set(this.latLngKey(node), tram)
     }
 
-    this.previousRoutes.set(tram, route)
+    this.previousRoutes.set(tram, blockRoute)
 
     // Check for trams waiting for registration
     for (const item of this.tramsWaitingForRegistration) {
