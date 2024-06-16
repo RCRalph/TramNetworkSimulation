@@ -116,6 +116,6 @@ export class TramRouteIndicator {
   }
 
   public getTramRotation() {
-    return Math.atan2(this.moveVector.dLng, this.moveVector.dLat) * 180 / Math.PI
+    return this.moveVector.angle
   }
 }
